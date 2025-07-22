@@ -48,8 +48,13 @@ export const kubectlPatchSchema = {
           "If true, only print the object that would be sent, without sending it",
         default: false,
       },
+      context: {
+        type: "string",
+        description:
+          "Kubernetes context to use for the operation",
+      },
     },
-    required: ["resourceType", "name"],
+    required: ["resourceType", "name", "context"],
   },
 };
 
@@ -63,6 +68,7 @@ export async function kubectlPatch(
     patchData?: object;
     patchFile?: string;
     dryRun?: boolean;
+    context: string;
   }
 ) {
   try {
@@ -76,10 +82,17 @@ export async function kubectlPatch(
     const namespace = input.namespace || "default";
     const patchType = input.patchType || "strategic";
     const dryRun = input.dryRun || false;
+    const context = input.context;
     let tempFile: string | null = null;
 
     const command = "kubectl";
-    const args = ["patch", input.resourceType, input.name, "-n", namespace];
+    const args = ["patch", input.resourceType, input.name];
+
+    // Add context (now required)
+    args.push("--context", context);
+
+    // Add namespace
+    args.push("-n", namespace);
 
     // Add patch type flag
     switch (patchType) {

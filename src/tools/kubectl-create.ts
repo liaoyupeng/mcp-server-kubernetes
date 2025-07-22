@@ -157,8 +157,13 @@ export const kubectlCreateSchema = {
         description:
           'Annotations to apply to the resource (e.g. ["key1=value1", "key2=value2"])',
       },
+      context: {
+        type: "string",
+        description:
+          "Kubernetes context to use for the operation",
+      },
     },
-    required: [],
+    required: ["context"],
   },
 } as const;
 
@@ -203,6 +208,7 @@ export async function kubectlCreate(
     annotations?: string[];
     schedule?: string;
     suspend?: boolean;
+    context: string;
   }
 ) {
   try {
@@ -231,10 +237,14 @@ export async function kubectlCreate(
     const dryRun = input.dryRun || false;
     const validate = input.validate ?? true;
     const output = input.output || "yaml";
+    const context = input.context;
 
     const command = "kubectl";
     const args = ["create"];
     let tempFile: string | null = null;
+
+    // Add context (now required)
+    args.push("--context", context);
 
     // Process manifest content if provided (file-based creation)
     if (input.manifest || input.filename) {

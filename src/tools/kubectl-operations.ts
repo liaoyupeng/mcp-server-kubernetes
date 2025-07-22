@@ -31,8 +31,13 @@ export const explainResourceSchema = {
         enum: ["plaintext", "plaintext-openapiv2"],
         default: "plaintext",
       },
+      context: {
+        type: "string",
+        description:
+          "Kubernetes context to use for the operation",
+      },
     },
-    required: ["resource"],
+    required: ["resource", "context"],
   },
 };
 
@@ -63,12 +68,20 @@ export const listApiResourcesSchema = {
         enum: ["wide", "name", "no-headers"],
         default: "wide",
       },
+      context: {
+        type: "string",
+        description:
+          "Kubernetes context to use for the operation",
+      },
     },
+    required: ["context"],
   },
 };
 
-const executeKubectlCommand = (command: string, args: string[]): string => {
+const executeKubectlCommand = (command: string, args: string[], context: string): string => {
   try {
+    args.unshift("--context", context);
+    
     return execFileSync(command, args, {
       encoding: "utf8",
       maxBuffer: getSpawnMaxBuffer(),
@@ -100,7 +113,7 @@ export async function explainResource(
 
     args.push(params.resource);
 
-    const result = executeKubectlCommand(command, args);
+    const result = executeKubectlCommand(command, args, params.context);
 
     return {
       content: [
@@ -138,7 +151,7 @@ export async function listApiResources(
       args.push(`-o`, params.output);
     }
 
-    const result = executeKubectlCommand(command, args);
+    const result = executeKubectlCommand(command, args, params.context);
 
     return {
       content: [

@@ -49,8 +49,13 @@ export const kubectlRolloutSchema = {
         description: "Watch the rollout status in real-time until completion",
         default: false,
       },
+      context: {
+        type: "string",
+        description:
+          "Kubernetes context to use for the operation",
+      },
     },
-    required: ["subCommand", "resourceType", "name", "namespace"],
+    required: ["subCommand", "resourceType", "name", "namespace", "context"],
   },
 };
 
@@ -65,17 +70,21 @@ export async function kubectlRollout(
     toRevision?: number;
     timeout?: string;
     watch?: boolean;
+    context: string;
   }
 ) {
   try {
     const namespace = input.namespace || "default";
     const watch = input.watch || false;
+    const context = input.context;
 
     const command = "kubectl";
     const args = [
       "rollout",
       input.subCommand,
       `${input.resourceType}/${input.name}`,
+      "--context",
+      context,
       "-n",
       namespace,
     ];

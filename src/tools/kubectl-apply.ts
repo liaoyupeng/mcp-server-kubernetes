@@ -37,8 +37,13 @@ export const kubectlApplySchema = {
           "If true, immediately remove resources from API and bypass graceful deletion",
         default: false,
       },
+      context: {
+        type: "string",
+        description:
+          "Kubernetes context to use for the operation",
+      },
     },
-    required: [],
+    required: ["context"],
   },
 } as const;
 
@@ -50,6 +55,7 @@ export async function kubectlApply(
     namespace?: string;
     dryRun?: boolean;
     force?: boolean;
+    context: string;
   }
 ) {
   try {
@@ -63,10 +69,14 @@ export async function kubectlApply(
     const namespace = input.namespace || "default";
     const dryRun = input.dryRun || false;
     const force = input.force || false;
+    const context = input.context;
 
     let command = "kubectl";
     let args = ["apply"];
     let tempFile: string | null = null;
+
+    // Add context first
+    args.push("--context", context);
 
     // Process manifest content if provided
     if (input.manifest) {

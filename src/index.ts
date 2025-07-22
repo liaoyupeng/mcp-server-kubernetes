@@ -191,8 +191,6 @@ server.setRequestHandler(
         return await kubectlContext(
           k8sManager,
           input as {
-            operation: "list" | "get" | "set";
-            name?: string;
             showCurrent?: boolean;
             detailed?: boolean;
             output?: string;
@@ -212,6 +210,7 @@ server.setRequestHandler(
             labelSelector?: string;
             fieldSelector?: string;
             sortBy?: string;
+            context: string;
           }
         );
       }
@@ -224,6 +223,7 @@ server.setRequestHandler(
             name: string;
             namespace?: string;
             allNamespaces?: boolean;
+            context: string;
           }
         );
       }
@@ -237,6 +237,7 @@ server.setRequestHandler(
             namespace?: string;
             dryRun?: boolean;
             force?: boolean;
+            context: string;
           }
         );
       }
@@ -254,6 +255,7 @@ server.setRequestHandler(
             allNamespaces?: boolean;
             force?: boolean;
             gracePeriodSeconds?: number;
+            context: string;
           }
         );
       }
@@ -267,6 +269,7 @@ server.setRequestHandler(
             namespace?: string;
             dryRun?: boolean;
             validate?: boolean;
+            context: string;
           }
         );
       }
@@ -286,6 +289,7 @@ server.setRequestHandler(
             previous?: boolean;
             follow?: boolean;
             labelSelector?: string;
+            context: string;
           }
         );
       }
@@ -301,6 +305,7 @@ server.setRequestHandler(
             patchData?: object;
             patchFile?: string;
             dryRun?: boolean;
+            context: string;
           }
         );
       }
@@ -323,6 +328,7 @@ server.setRequestHandler(
             toRevision?: number;
             timeout?: string;
             watch?: boolean;
+            context: string;
           }
         );
       }
@@ -339,6 +345,7 @@ server.setRequestHandler(
             outputFormat?: string;
             flags?: Record<string, any>;
             args?: string[];
+            context: string;
           }
         );
       }
@@ -351,6 +358,7 @@ server.setRequestHandler(
           labelSelector: (input as { labelSelector?: string }).labelSelector,
           sortBy: (input as { sortBy?: string }).sortBy,
           output: (input as { output?: string }).output,
+          context: (input as { context: string }).context,
         });
       }
 
@@ -381,6 +389,7 @@ server.setRequestHandler(
               apiVersion?: string;
               recursive?: boolean;
               output?: "plaintext" | "plaintext-openapiv2";
+              context: string;
             }
           );
         }
@@ -425,6 +434,7 @@ server.setRequestHandler(
               namespaced?: boolean;
               verbs?: string[];
               output?: "wide" | "name" | "no-headers";
+              context: string;
             }
           );
         }
@@ -458,6 +468,7 @@ server.setRequestHandler(
               namespace?: string;
               replicas: number;
               resourceType?: string;
+              context: string;
             }
           );
         }

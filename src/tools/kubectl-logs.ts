@@ -60,8 +60,13 @@ export const kubectlLogsSchema = {
         type: "string",
         description: "Filter resources by label selector",
       },
+      context: {
+        type: "string",
+        description:
+          "Kubernetes context to use for the operation",
+      },
     },
-    required: ["resourceType", "name", "namespace"],
+    required: ["resourceType", "name", "namespace", "context"],
   },
 } as const;
 
@@ -79,18 +84,20 @@ export async function kubectlLogs(
     previous?: boolean;
     follow?: boolean;
     labelSelector?: string;
+    context: string;
   }
 ) {
   try {
     const resourceType = input.resourceType.toLowerCase();
     const name = input.name;
     const namespace = input.namespace || "default";
+    const context = input.context;
 
     const command = "kubectl";
     // Handle different resource types
     if (resourceType === "pod") {
       // Direct pod logs
-      let args = ["-n", namespace, "logs", name];
+      let args = ["--context", context, "-n", namespace, "logs", name];
 
       // If container is specified, add it
       if (input.container) {
@@ -121,6 +128,8 @@ export async function kubectlLogs(
 
       if (resourceType === "deployment") {
         selectorArgs = [
+          "--context",
+          context,
           "-n",
           namespace,
           "get",
@@ -131,10 +140,12 @@ export async function kubectlLogs(
         ];
       } else if (resourceType === "job") {
         // For jobs, we use the job-name label
-        return getLabelSelectorLogs(`job-name=${name}`, namespace, input);
+        return getLabelSelectorLogs(`job-name=${name}`, namespace, input, context);
       } else if (resourceType === "cronjob") {
         // For cronjobs, it's more complex - need to find the job first
         const jobsArgs = [
+          "--context",
+          context,
           "-n",
           namespace,
           "get",
@@ -177,7 +188,8 @@ export async function kubectlLogs(
             const result = await getLabelSelectorLogs(
               `job-name=${job}`,
               namespace,
-              input
+              input,
+              context
             );
             const jobLog = JSON.parse(result.content[0].text);
             allJobLogs[job] = jobLog.logs;
@@ -222,7 +234,7 @@ export async function kubectlLogs(
             .map(([key, value]) => `${key}=${value}`)
             .join(",");
 
-          return getLabelSelectorLogs(labelSelector, namespace, input);
+          return getLabelSelectorLogs(labelSelector, namespace, input, context);
         }
 
         // For jobs and cronjobs, the logic is handled above
@@ -246,7 +258,7 @@ export async function kubectlLogs(
       }
     } else if (input.labelSelector) {
       // Handle logs by label selector
-      return getLabelSelectorLogs(input.labelSelector, namespace, input);
+      return getLabelSelectorLogs(input.labelSelector, namespace, input, context);
     } else {
       throw new McpError(
         ErrorCode.InvalidRequest,
@@ -296,12 +308,15 @@ function addLogOptions(args: string[], input: any): string[] {
 async function getLabelSelectorLogs(
   labelSelector: string,
   namespace: string,
-  input: any
+  input: any,
+  context: string
 ): Promise<{ content: Array<{ type: string; text: string }> }> {
   try {
     const command = "kubectl";
     // First, find all pods matching the label selector
     const podsArgs = [
+      "--context",
+      context,
       "-n",
       namespace,
       "get",
@@ -342,7 +357,7 @@ async function getLabelSelectorLogs(
       // Skip empty pod names
       if (!pod) continue;
 
-      let podArgs = ["-n", namespace, "logs", pod];
+      let podArgs = ["--context", context, "-n", namespace, "logs", pod];
 
       // Add container if specified
       if (input.container) {

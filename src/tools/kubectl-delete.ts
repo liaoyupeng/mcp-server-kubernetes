@@ -57,8 +57,13 @@ export const kubectlDeleteSchema = {
         description:
           "Period of time in seconds given to the resource to terminate gracefully",
       },
+      context: {
+        type: "string",
+        description:
+          "Kubernetes context to use for the operation",
+      },
     },
-    required: ["resourceType", "name", "namespace"],
+    required: ["context", "resourceType", "name", "namespace"],
   },
 } as const;
 
@@ -74,6 +79,7 @@ export async function kubectlDelete(
     allNamespaces?: boolean;
     force?: boolean;
     gracePeriodSeconds?: number;
+    context: string;
   }
 ) {
   try {
@@ -96,10 +102,14 @@ export async function kubectlDelete(
     const namespace = input.namespace || "default";
     const allNamespaces = input.allNamespaces || false;
     const force = input.force || false;
+    const context = input.context;
 
     const command = "kubectl";
     const args = ["delete"];
     let tempFile: string | null = null;
+
+    // Add context (now required)
+    args.push("--context", context);
 
     // Handle deleting from manifest or file
     if (input.manifest) {

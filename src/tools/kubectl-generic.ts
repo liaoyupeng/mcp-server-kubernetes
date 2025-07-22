@@ -47,8 +47,13 @@ export const kubectlGenericSchema = {
         items: { type: "string" },
         description: "Additional command arguments",
       },
+      context: {
+        type: "string",
+        description:
+          "Kubernetes context to use for the operation",
+      },
     },
-    required: ["command"],
+    required: ["command", "context"],
   },
 };
 
@@ -63,12 +68,16 @@ export async function kubectlGeneric(
     outputFormat?: string;
     flags?: Record<string, any>;
     args?: string[];
+    context: string;
   }
 ) {
   try {
     // Start building the kubectl command
     const command = "kubectl";
     const cmdArgs: string[] = [input.command];
+
+    // Add context (now required)
+    cmdArgs.push("--context", input.context);
 
     // Add subcommand if provided
     if (input.subCommand) {

@@ -30,8 +30,13 @@ export const kubectlDescribeSchema = {
         description: "If true, describe resources across all namespaces",
         default: false,
       },
+      context: {
+        type: "string",
+        description:
+          "Kubernetes context to use for the operation",
+      },
     },
-    required: ["resourceType", "name"],
+    required: ["resourceType", "name", "context"],
   },
 } as const;
 
@@ -42,6 +47,7 @@ export async function kubectlDescribe(
     name: string;
     namespace?: string;
     allNamespaces?: boolean;
+    context: string;
   }
 ) {
   try {
@@ -49,10 +55,14 @@ export async function kubectlDescribe(
     const name = input.name;
     const namespace = input.namespace || "default";
     const allNamespaces = input.allNamespaces || false;
+    const context = input.context;
 
     // Build the kubectl command
     const command = "kubectl";
     const args = ["describe", resourceType, name];
+
+    // Add context (now required)
+    args.push("--context", context);
 
     // Add namespace flag unless all namespaces is specified
     if (allNamespaces) {

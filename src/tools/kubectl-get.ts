@@ -51,8 +51,13 @@ export const kubectlGetSchema = {
         description:
           "Sort events by a field (default: lastTimestamp). Only applicable for events.",
       },
+      context: {
+        type: "string",
+        description:
+          "Kubernetes context to use for the operation",
+      },
     },
-    required: ["resourceType", "name", "namespace"],
+    required: ["resourceType", "name", "namespace", "context"],
   },
 } as const;
 
@@ -67,6 +72,7 @@ export async function kubectlGet(
     labelSelector?: string;
     fieldSelector?: string;
     sortBy?: string;
+    context: string;
   }
 ) {
   try {
@@ -78,10 +84,14 @@ export async function kubectlGet(
     const labelSelector = input.labelSelector || "";
     const fieldSelector = input.fieldSelector || "";
     const sortBy = input.sortBy;
+    const context = input.context;
 
     // Build the kubectl command
     const command = "kubectl";
     const args = ["get", resourceType];
+
+    // Add context (now required)
+    args.push("--context", context);
 
     // Add name if provided
     if (name) {
@@ -203,7 +213,6 @@ export async function kubectlGet(
           }
         } catch (parseError) {
           // If JSON parsing fails, return the raw output
-          console.error("Error parsing JSON:", parseError);
         }
       }
 

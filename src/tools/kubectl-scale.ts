@@ -28,8 +28,13 @@ export const kubectlScaleSchema = {
           "Resource type to scale (deployment, replicaset, statefulset)",
         default: "deployment",
       },
+      context: {
+        type: "string",
+        description:
+          "Kubernetes context to use for the operation",
+      },
     },
-    required: ["name", "replicas"],
+    required: ["name", "replicas", "context"],
   },
 };
 
@@ -40,11 +45,13 @@ export async function kubectlScale(
     namespace?: string;
     replicas: number;
     resourceType?: string;
+    context: string;
   }
 ) {
   try {
     const namespace = input.namespace || "default";
     const resourceType = input.resourceType || "deployment";
+    const context = input.context;
 
     const command = "kubectl";
     const args = [
@@ -52,6 +59,7 @@ export async function kubectlScale(
       resourceType,
       input.name,
       `--replicas=${input.replicas}`,
+      `--context=${context}`,
       `--namespace=${namespace}`,
     ];
 
