@@ -29,6 +29,7 @@ import { KubernetesManager } from "./types.js";
 import { serverConfig } from "./config/server-config.js";
 import { cleanupSchema } from "./config/cleanup-config.js";
 import { startSSEServer } from "./utils/sse.js";
+import { startHttpServer } from "./utils/http.js";
 import {
   startPortForward,
   PortForwardSchema,
@@ -506,6 +507,9 @@ server.setRequestHandler(
 if (process.env.ENABLE_UNSAFE_SSE_TRANSPORT) {
   startSSEServer(server);
   console.log(`SSE server started`);
+} else if (process.env.ENABLE_HTTP_TRANSPORT) {
+  startHttpServer(server);
+  console.log(`HTTP server started`);
 } else {
   const transport = new StdioServerTransport();
 
